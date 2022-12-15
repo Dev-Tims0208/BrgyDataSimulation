@@ -1,0 +1,143 @@
+﻿@{
+    ViewBag.Title = "List";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <table class="table table-striped" id="listing">
+                <thead>
+                    <tr>
+                        <th>Barangay Name</th>
+                        <th>City</th>
+                        <th>Population</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@* edit modal *@
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">Edit Barangay</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="submitEdit">
+                    <div class="form-group">
+                        <label for="Name">Name</label>
+                        <input type="hidden" name="id" id="id" class="form-control" />
+                        <input type="text" name="name" id="name" class="form-control" />
+                    </div>
+                    <div class="form-group">
+                        <label for="population">Population</label>
+                        <input type="text" name="population" id="population" class="form-control" />
+                    </div>
+                    <div class="form-group">
+                        <label for="Name">City</label>
+                        <select name="cityId" id="cityId" class="form-control"></select>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn-primary btn-sm" type="submit">Save</button>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@section scripts {
+<script>
+
+    @* save *@
+        $("#submitEdit").submit(function (e) {
+            e.preventDefault();
+            var id = $('#submitEdit').find('input[name="id"]').val();
+            var name = $('#submitEdit').find('input[name="name"]').val();
+            var population = $('#submitEdit').find('input[name="population"]').val();
+            var cityId = $('#submitEdit').find('select[name="cityId"]').val();
+            var url = '/api/barangay/put/' + id;
+            $.ajax({
+                type: 'PUT',
+                url: url,
+                data: {
+                    Id: id,
+                    Name: name,
+                    Population: population,
+                    CityId: cityId
+                },
+                success: function (data) {
+                    alert('success');
+                    @* location.reload(); *@
+                },
+                error: function (data) {
+                    alert(data);
+                }
+            });
+        });
+
+    $('#listing').on('click', '.edit', function () {
+        var id = $(this).attr('data-id');
+        var url = '/api/barangay/' + id;
+        var cityId = $('select[name=cityId]').val();
+        //check true or false 
+        $.ajax({
+            type: 'GET',
+            url: url,
+            success: function (data) {
+                $('#editModal').modal('show');
+                $('#submitEdit').find('input[name="id"]').val(data.Id);
+                $('#submitEdit').find('input[name="name"]').val(data.Name);
+                $('#submitEdit').find('input[name="population"]').val(data.Population);
+                $('#submitEdit').find('select[name="cityId"]').val(data.CityId);
+                @* //console.log(data, data.id); *@
+            },
+            //if failed
+            error: function (data) {
+                alert(data)
+            }
+        });
+    });
+
+
+    $.ajax({
+        type: 'GET',
+        url: '/api/city/get',
+        success: function (data) {
+            $.each(data, function (index, value) {
+                $('select[name=cityId]').append('<option value="' + value.Id + '">' + value.Name + '</option>');
+            }
+            );
+        },
+        error: function (data) {
+            alert(data);
+        }
+    });
+    $.ajax({
+        type: 'GET',
+        url: '/api/barangay/get',
+        success: function (data) {
+            // get barangays and render to table without datatable include city name
+            $.each(data, function (index, value) {
+                var row = '<tr><td>' + value.Name + '</td><td>' + value.City.Name + '</td><td>' + value.Population + '</td><td><button class="btn btn-secondary btn-sm edit" data-id="' + value.Id + '">Edit</button> | <a href="/barangay/delete/' + value.Id + '">Delete</a></td></tr>';
+                $('#listing tbody').append(row);
+            })
+        }
+    })
+</script>
+}

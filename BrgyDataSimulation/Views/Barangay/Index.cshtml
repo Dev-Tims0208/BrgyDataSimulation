@@ -1,0 +1,93 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container" style="margin-top: 10%;">
+    <div class="row">
+        <div class="col-12 text-center">
+            <button class="btn btn-warning btn-sm ">@Html.ActionLink("Barangay", "List", "Barangay")</button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <form id="post">
+                <div class="form-group text-left">
+                    <label for="name">Name</label>
+                    <input type="text" id="name" name="name" />
+                </div>
+
+                <div class="form-group text-left">
+                    <label for="population">Population</label>
+                    <input type="text" id="population" name="population" />
+                </div>
+                <div class="form-group text-left">
+                    <label for="province">Province</label>
+                    <select name="provinceId" id="provinceId"></select>
+                </div>
+                <div class="form-group text-left">
+                    <label for="province">City</label>
+                    <select name="cityId" id="cityId"></select>
+                </div>
+                <div class="form-group text-center">
+                    <button class="btn btn-primary btn-sm">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        $(document).ready(function () {
+            $.ajax({
+                type: 'GET',
+                url: '/api/province/get',
+                success: function (data) {
+                    $.each(data, function (index, value) {
+                        $('select[name=provinceId]').append('<option value="' + value.Id + '">' + value.Name + '</option>');
+                    }
+                    );
+                },
+                error: function (data) {
+                    alert(data);
+                }
+            });
+            $.ajax({
+                type: 'GET',
+                url: '/api/city/get',
+                success: function (data) {
+                    $.each(data, function (index, value) {
+                        $('select[name=cityId]').append('<option value="' + value.Id + '">' + value.Name + '</option>');
+                    }
+                    );
+                },
+                error: function (data) {
+                    alert(data);
+                }
+            });
+            $("#post").submit(function (e) {
+                e.preventDefault();
+                var data = {
+                    name: $("#post").find('input[name=name]').val(),
+                    population: $("#post").find('input[name=population]').val(),
+                    provinceId: $("#post").find('select[name=provinceId]').val(),
+                    cityId: $("#post").find('select[name=cityId]').val(),
+                };
+                $.ajax({
+                    type: 'POST',
+                    url: '/api/barangay/post',
+                    data: data,
+                    success: function (data) {
+                        alert('Success');
+                        location.reload();
+                    },
+                    error: function (data) {
+                        alert(data);
+                    }
+                })
+            })
+        });
+    </script>
+}
